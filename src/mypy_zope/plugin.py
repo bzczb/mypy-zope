@@ -506,6 +506,12 @@ class ZopeInterfacePlugin(Plugin):
     ) -> Statement:
 
         if func_def.arg_names and func_def.arg_names[0] == "self":
+            if func_def.abstract_status == HACK_IS_ABSTRACT_NON_PROPAGATING:
+                # Check if we already adjusted this function.
+                # Under obscure and hard-to-reproduce conditions, mypy is
+                # analyzing these functions after we already patched them,
+                # and is shouting "they shouldn't have self argument!!!".
+                return func_def  # it's already adjusted, wat
             # reveal the common mistake of leaving "self" arguments in the
             # interface
             api.fail("Interface methods should not have 'self' argument", func_def)
